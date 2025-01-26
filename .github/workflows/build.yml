@@ -50,7 +50,7 @@ jobs:
       shell: bash
 
     - name: Build
-      run: cargo build --verbose --release
+      run: cargo build --release
 
     - name: Create artifact directory
       run: mkdir artifacts

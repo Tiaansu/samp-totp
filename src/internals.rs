@@ -23,24 +23,30 @@ pub fn create_totp_from_key(setup_key: &str) -> Result<TOTP, Box<dyn std::error:
 }
 
 pub fn verify_otp(samp_totp: &mut SampTotp, totp: &TOTP, otp: &str) -> bool {
-    let current = totp.generate_current();
-    if current.is_err() {
-        return false;
-    }
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
 
-    let current = current.unwrap();
-    if otp == current {
-        if !samp_totp.used_otps.contains_key(otp) {
-            let now = SystemTime::now()
-                .duration_since(SystemTime::UNIX_EPOCH)
-                .unwrap()
-                .as_secs();
-            let next_current = totp.next_step_current().unwrap_or(now + 60);
+    // Create unique key per secret+otp combination
+    let otp_key = format!("{}:{}", totp.get_secret_base32(), otp);
 
-            samp_totp.used_otps.insert(otp.to_string(), next_current);
-            return true;
+    // Check if this OTP was already used by this user
+    if let Some(&expiration) = samp_totp.used_otps.get(&otp_key) {
+        if expiration > now {
+            return false; // Still within the blocking window
         }
     }
+
+    let is_valid = totp.check_current(otp).unwrap_or(false);
+
+    if is_valid {
+        // Mark OTP as used until the end of next period (60 seconds from now)
+        // This prevents reuse even if the token is still technically valid
+        samp_totp.used_otps.insert(otp_key, now + 60);
+        return true;
+    }
+
     false
 }
 

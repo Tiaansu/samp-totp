@@ -7,7 +7,7 @@
 #endif
 #define _samp_totp_included
 
-#define MAX_TOTP_SECRET_LENGTH          (32)
+#define MAX_TOTP_SECRET_LENGTH          (32 + 1)
 
 native totp_generate_secret(output[], size = sizeof output);
 

@@ -1,15 +1,15 @@
 use crate::internals::clean_expired_otps;
-use std::collections::HashMap;
 use log::info;
 use samp::plugin::SampPlugin;
+use std::collections::HashMap;
 
 pub struct SampTotp {
-    pub used_otps: HashMap<String, u64>
+    pub used_otps: HashMap<String, u64>,
 }
 
 impl SampPlugin for SampTotp {
     fn on_load(&mut self) {
-        info!("Version: 1.0.0");
+        info!("Version: 1.0.1");
     }
 
     fn process_tick(&mut self) {
